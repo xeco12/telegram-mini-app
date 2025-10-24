@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram İstatistik Botu</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <script type="module" src="https://esm.run/@material/web/all.js"></script>
+    <link rel="stylesheet" href="https://esm.run/@material/web/dist/material-web.css">
+    <style>
+        body { background-color: var(--tg-theme-bg-color, #fff); color: var(--tg-theme-text-color, #000); font-family: 'Roboto', sans-serif; margin: 0; padding: 16px; box-sizing: border-box; opacity: 0; transition: opacity 0.3s ease-in; }
+        #loader, #error-screen { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80vh; text-align: center; }
+        #loader .icon { font-size: 48px; color: var(--tg-theme-button-color, #3390ec); animation: spin 1.5s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #app-container { display: none; flex-direction: column; }
+        header { margin-bottom: 16px; }
+        #greeting { font-size: 28px; font-weight: 500; line-height: 36px; color: var(--tg-theme-text-color, #000); }
+        md-tabs { width: 100%; } md-primary-tab { flex-grow: 1; }
+        .panel { display: none; padding-top: 20px; } .panel.active { display: block; }
+        md-list-item { --md-list-item-label-text-font: 'Roboto'; --md-list-item-supporting-text-font: 'Roboto'; }
+        .list-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--tg-theme-secondary-bg-color, #efefef); display: flex; align-items: center; justify-content: center; color: var(--tg-theme-button-color, #3390ec); font-size: 24px; }
+        .join-button { --md-filled-tonal-button-container-color: var(--tg-theme-button-color, #3390ec); --md-filled-tonal-button-label-text-color: var(--tg-theme-button-text-color, #ffffff); font-size: 12px; }
+        .stat-item .icon { color: var(--tg-theme-hint-color, #777); font-size: 20px; }
+    </style>
+</head>
+<body>
+    <div id="loader">
+        <span class="icon material-symbols-outlined">sync</span>
+        <p>Telegram'a bağlanılıyor...</p>
+    </div>
+    <div id="error-screen" style="display: none;">
+        <span class="icon material-symbols-outlined" style="font-size: 48px; color: #E53935;">error</span>
+        <h2>Uygulama Hatası</h2>
+        <p>Bu uygulama sadece Telegram içinden açılabilir.</p>
+    </div>
+    <div id="app-container">
+        <header><h1 id="greeting">Hoş geldiniz!</h1></header>
+        <md-tabs id="content-tabs">
+            <md-primary-tab><span class="material-symbols-outlined">bar_chart</span>İstatistikler</md-primary-tab>
+            <md-primary-tab><span class="material-symbols-outlined">campaign</span>Kanallar</md-primary-tab>
+            <md-primary-tab><span class="material-symbols-outlined">group</span>Gruplar</md-primary-tab>
+            <md-primary-tab><span class="material-symbols-outlined">smart_toy</span>Botlar</md-primary-tab>
+        </md-tabs>
+        <main>
+            <div id="panel-stats" class="panel active"><md-list id="stats-list"></md-list></div>
+            <div id="panel-channels" class="panel"><md-list id="channels-list"></md-list></div>
+            <div id="panel-groups" class="panel"><md-list id="groups-list"></md-list></div>
+            <div id="panel-bots" class="panel"><md-list id="bots-list"></md-list></div>
+        </main>
+    </div>
+    <script type="module">
+        const mockStats=[{icon:'forum',label:'Gönderilen Mesaj',value:'1,234'},{icon:'groups',label:'Aktif Grup',value:'12'},{icon:'alternate_email',label:'Bahsedilme',value:'88'},{icon:'schedule',label:'Aktif Süre (saat)',value:'48.5'}];
+        const mockChannels=[{name:'Teknoloji Haberleri',desc:'En güncel teknoloji gelişmeleri.',icon:'laptop_chromebook'},{name:'Tasarım Dünyası',desc:'UI/UX ve Grafik Tasarım.',icon:'palette'},{name:'Yazılım Notları',desc:'Kodlama ve geliştirme ipuçları.',icon:'code'}];
+        const mockGroups=[{name:'JavaScript Türkiye',desc:'JS ve frameworkleri tartışın.',icon:'javascript'},{name:'Python Geliştiricileri',desc:'Veri bilimi, yapay zeka.',icon:'data_object'},{name:'Girişimcilik Kulübü',desc:'Fikir alışverişi ve networking.',icon:'rocket_launch'}];
+        const mockBots=[{name:'Görev Hatırlatıcı',desc:'Günlük görevlerinizi yönetin.',icon:'task_alt'},{name:'Hava Durumu Botu',desc:'Anlık hava durumu bilgisi.',icon:'cloudy'},{name:'Çeviri Botu',desc:'Hızlı ve doğru çeviriler.',icon:'translate'}];
+        const loader=document.getElementById('loader'),errorScreen=document.getElementById('error-screen'),appContainer=document.getElementById('app-container'),greeting=document.getElementById('greeting'),tabs=document.getElementById('content-tabs'),panels=document.querySelectorAll('.panel');
+        function renderStats(){const list=document.getElementById('stats-list');list.innerHTML='';mockStats.forEach(stat=>{const item=document.createElement('md-list-item');item.className='stat-item';item.innerHTML=`<span classs="icon" slot="start">${stat.label}</span><span slot="end" style="font-weight:500;">${stat.value}</span>`;list.appendChild(item);});}
+        function renderRecommendations(listId,data){const list=document.getElementById(listId);list.innerHTML='';data.forEach(rec=>{const item=document.createElement('md-list-item');item.headline=rec.name;item.supportingText=rec.desc;item.innerHTML=`<div slot="start" class="list-avatar"><span class="material-symbols-outlined">${rec.icon}</span></div><md-filled-tonal-button class="join-button" slot="end" onclick="Telegram.WebApp.openTelegramLink('https://t.me/')">Katıl</md-filled-tonal-button>`;list.appendChild(item);});}
+        tabs.addEventListener('change',()=>{const activeIndex=tabs.activeTabIndex;panels.forEach((panel,index)=>{if(index===activeIndex){panel.classList.add('active');}else{panel.classList.remove('active');}});});
+        try{const TWA=window.Telegram.WebApp;TWA.ready();const user=TWA.initDataUnsafe?.user;if(user&&user.first_name){greeting.textContent=`Merhaba, ${user.first_name}!`;renderStats();renderRecommendations('channels-list',mockChannels);renderRecommendations('groups-list',mockGroups);renderRecommendations('bots-list',mockBots);loader.style.display='none';appContainer.style.display='flex';document.body.style.opacity=1;TWA.setBackgroundColor(TWA.themeParams.bg_color||'#ffffff');}else{loader.style.display='none';errorScreen.style.display='flex';document.body.style.opacity=1;}}catch(error){console.error(error);loader.style.display='none';errorScreen.style.display='flex';document.body.style.opacity=1;}
+    </script>
+</body>
+</html>
